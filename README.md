@@ -1,4 +1,4 @@
-# Neuron Language 🧠
+# Neuron Language 
 
 > The AI-First Programming Language. Built for humans, designed for Machine Learning.
 
