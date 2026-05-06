@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: neuron-lang
+Version: 1.0.0
+Summary: AI-First Programming Language
+License: MIT
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.21.0
+Provides-Extra: full
+Requires-Dist: matplotlib>=3.5.0; extra == "full"
+Requires-Dist: Pillow>=9.0.0; extra == "full"
