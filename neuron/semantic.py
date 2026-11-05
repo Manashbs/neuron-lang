@@ -2,6 +2,7 @@
 
 from neuron import ast_nodes as ast
 from neuron.errors import NeuronCompileError
+from neuron.quantum import QuantumCircuitAnalyzer
 
 
 class StaticAnalyzer:
@@ -13,6 +14,7 @@ class StaticAnalyzer:
         self.source_lines = source.splitlines()
         self.filename = filename
         self.tensor_shapes = {}
+        self.quantum_analyzer = QuantumCircuitAnalyzer(source, filename)
 
     def analyze(self, program):
         self._analyze_statements(program.statements, self.tensor_shapes)
@@ -32,6 +34,11 @@ class StaticAnalyzer:
                         )
                     )
                 shapes[statement.target] = declared_shape
+            elif isinstance(statement, ast.QuantumCircuitDef):
+                self.quantum_analyzer.analyze(statement)
+            elif isinstance(statement, (
+                    ast.QuantumQubitDeclaration, ast.QuantumTensorDeclaration)):
+                self._error(statement, "Qubit declarations must appear inside a quantum circuit")
             elif isinstance(statement, ast.Assignment):
                 inferred_shape = self._infer_shape(statement.value, shapes)
                 if inferred_shape is None:

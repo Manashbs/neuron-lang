@@ -217,6 +217,12 @@ class Interpreter:
         env.set(node.target, value)
         return value
 
+    def visit_QuantumCircuitDef(self, node, env):
+        raise NeuronRuntimeError(
+            "Quantum circuits are compile-only; compile this file with --target qasm3",
+            line=node.line
+        )
+
     def visit_AugmentedAssignment(self, node, env):
         current = env.get(node.target, line=node.line)
         rhs = self.visit(node.value, env)

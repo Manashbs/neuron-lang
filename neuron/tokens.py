@@ -30,6 +30,9 @@ class TokenType(Enum):
     GRAB = auto()           # grab (import)
     ENTITY = auto()         # entity (class)
     BRAIN = auto()          # brain (AI model class)
+    QUANTUM = auto()        # quantum (quantum circuit block)
+    QUBIT = auto()          # qubit (quantum register declaration)
+    QTENSOR = auto()        # qtensor (quantum register declaration)
     ME = auto()             # me (self)
     CREATE = auto()         # create (constructor name)
     YES = auto()            # yes (True)
@@ -139,6 +142,9 @@ KEYWORDS = {
     "grab": TokenType.GRAB,
     "entity": TokenType.ENTITY,
     "brain": TokenType.BRAIN,
+    "quantum": TokenType.QUANTUM,
+    "qubit": TokenType.QUBIT,
+    "qtensor": TokenType.QTENSOR,
     "me": TokenType.ME,
     "create": TokenType.CREATE,
     "yes": TokenType.YES,

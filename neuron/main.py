@@ -54,7 +54,14 @@ def main():
             safe_print(f"{NeuronColors.ERROR}Error: No file specified{Colors.RESET}")
             safe_print("Usage: neuron compile <file.nl>")
             sys.exit(1)
-        compile_file(args[1])
+        target = "bytecode"
+        options = args[2:]
+        if options:
+            if len(options) != 2 or options[0] != "--target":
+                safe_print("Usage: neuron compile <file.nl> [--target bytecode|qasm3]")
+                sys.exit(1)
+            target = options[1]
+        compile_file(args[1], target)
         return
 
     # Package manager commands
@@ -120,8 +127,8 @@ def run_file(filepath):
         sys.exit(1)
 
 
-def compile_file(filepath):
-    """Compile a .nl file to bytecode."""
+def compile_file(filepath, target="bytecode"):
+    """Compile a .nl file to bytecode or OpenQASM 3."""
     if not os.path.exists(filepath):
         safe_print(f"{NeuronColors.ERROR}Error: File not found: {filepath}{Colors.RESET}")
         sys.exit(1)
@@ -131,9 +138,10 @@ def compile_file(filepath):
 
     try:
         compiler = Compiler()
-        output = filepath.replace('.nl', '.nlc')
-        compiler.compile_file(filepath, output)
-        safe_print(f"{NeuronColors.SUCCESS}✓ Compiled: {filepath} → {output}{Colors.RESET}")
+        extension = ".qasm" if target == "qasm3" else ".nlc"
+        output = os.path.splitext(filepath)[0] + extension
+        compiler.compile_file(filepath, output, target=target)
+        safe_print(f"{NeuronColors.SUCCESS}Compiled {target}: {filepath} -> {output}{Colors.RESET}")
     except NeuronError as e:
         safe_print(str(e))
         sys.exit(1)
@@ -150,6 +158,7 @@ def print_help():
     neuron                    Start interactive REPL
     neuron run <file.nl>      Interpret and run a file
     neuron compile <file.nl>  Compile to bytecode (.nlc)
+    neuron compile <file.nl> --target qasm3  Compile one quantum block to OpenQASM 3
     neuron <file.nl>          Run a file (shorthand)
 
 {Colors.BOLD}Package Manager:{Colors.RESET}

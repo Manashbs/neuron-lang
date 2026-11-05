@@ -29,6 +29,9 @@ neuron run my_script.nl
 
 # Compile for faster future execution
 neuron compile my_script.nl
+
+# Compile a quantum block to OpenQASM 3
+neuron compile examples/bell_state.nl --target qasm3
 ```
 
 ---
@@ -184,6 +187,24 @@ tensor[100, 10] y = x.matmul(w)
 
 The current analysis infers shapes from `tensor.random`, `tensor.rand`, `tensor.zeros`, and `tensor.ones`, propagates them through assignments, and checks rank-2 `matmul` and elementwise broadcasting. It reports a compile error when a known result conflicts with a declaration or matrix dimensions do not align. Shapes that cannot be inferred statically are left for runtime validation.
 
+## Quantum Circuit Compiler (OpenQASM 3)
+
+Neuron supports a compiler-only quantum circuit block with statically owned qubits and `qtensor` registers. Gate operands must refer to declared qubits, register indices must be constant and in range, measured qubits cannot be reused, aliases are rejected, and an unmeasured qubit cannot be explicitly dropped.
+
+```neuron
+quantum BellState:
+    qubit alice
+    qubit bob
+    h(alice)
+    cx(alice, bob)
+    measure(alice)
+    measure(bob)
+```
+
+Compile the file with `neuron compile bell_state.nl --target qasm3`. The compiler emits OpenQASM 3 with standard gates and explicit classical measurement bits. Supported operations are `h`, `x`, `y`, `z`, `s`, `t`, `rx`, `ry`, `rz`, `cx`, `cz`, `swap`, and `measure`. Rotations currently require a numeric-literal angle. See [examples/bell_state.nl](./examples/bell_state.nl).
+
+This backend generates source only. It does not simulate circuits, submit jobs to a QPU, integrate Qiskit Runtime, or provide parameter-shift gradients or hybrid `quantum_brain` training.
+
 ### Linear Regression Example
 ```neuron
 grab tensor
@@ -234,7 +255,11 @@ Neuron comes batteries-included with AI primitives:
 
 Neuron currently uses a Python interpreter and a Python bytecode compiler. `.nlc` files are Python-pickled bytecode chunks; they are not yet a standalone executable format or a native VM. The shape-analysis pass is an initial compiler foundation, not a native tensor type system.
 
-Native CPU/CUDA memory management and GIL-free execution, a linear quantum type checker, hybrid parameter-shift training, OpenQASM 3 code generation, and IBM Quantum Runtime submission are not implemented yet. They require separate compiler/runtime modules and explicit circuit syntax and ownership rules; no claim of hardware support is made by this release.
+Native CPU/CUDA memory management and GIL-free execution, hybrid parameter-shift training, and IBM Quantum Runtime submission are not implemented yet. The current quantum analyzer checks ownership within explicit `quantum` blocks and emits OpenQASM 3; it is not a general-purpose linear type system or hardware runtime.
+
+### Copyright and licensing
+
+The package metadata declares the MIT license. Copyright in software is distinct from copyright in a language's name, syntax, or general ideas; formal registration and ownership claims depend on the applicable jurisdiction and verified authorship. Confirm the rights holder and contributor permissions before making a formal registration or changing licensing. This project update does not establish a new proprietary claim.
 
 ---
 *Created by the Neuron Developer Community*

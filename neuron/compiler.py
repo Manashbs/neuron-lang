@@ -13,6 +13,8 @@ from neuron import ast_nodes as ast
 from neuron.lexer import Lexer
 from neuron.parser import Parser
 from neuron.semantic import StaticAnalyzer
+from neuron.quantum import OpenQASM3Backend
+from neuron.errors import NeuronCompileError
 
 
 class OpCode(IntEnum):
@@ -95,14 +97,23 @@ class BytecodeChunk:
 class Compiler:
     """Compiles Neuron AST to bytecode."""
 
-    def compile_file(self, input_path, output_path=None):
+    def compile_file(self, input_path, output_path=None, target="bytecode"):
         with open(input_path, 'r', encoding='utf-8') as f:
             source = f.read()
+
+        if target == "qasm3":
+            output_path = output_path or os.path.splitext(input_path)[0] + ".qasm"
+            qasm = self.compile_qasm_source(source, input_path)
+            with open(output_path, 'w', encoding='utf-8', newline='\n') as f:
+                f.write(qasm)
+            return qasm
+        if target != "bytecode":
+            raise NeuronCompileError("Unknown compiler target '{}'".format(target), file=input_path)
 
         chunk = self.compile_source(source, input_path)
 
         if output_path is None:
-            output_path = input_path.replace('.nl', '.nlc')
+            output_path = os.path.splitext(input_path)[0] + '.nlc'
 
         with open(output_path, 'wb') as f:
             pickle.dump(chunk, f)
@@ -110,16 +121,29 @@ class Compiler:
         return chunk
 
     def compile_source(self, source, filename="<stdin>"):
+        program = self._parse_program(source, filename)
+        if any(isinstance(statement, ast.QuantumCircuitDef)
+               for statement in program.statements):
+            raise NeuronCompileError(
+                "Quantum circuits require the OpenQASM 3 target; use --target qasm3",
+                file=filename
+            )
+        chunk = BytecodeChunk(filename)
+        self._compile_node(program, chunk)
+        chunk.emit(OpCode.HALT)
+        return chunk
+
+    def compile_qasm_source(self, source, filename="<stdin>"):
+        program = self._parse_program(source, filename)
+        return OpenQASM3Backend(source, filename).compile(program)
+
+    def _parse_program(self, source, filename):
         lexer = Lexer(source, filename)
         tokens = lexer.tokenize()
         parser = Parser(tokens, source, filename)
         program = parser.parse()
         StaticAnalyzer(source, filename).analyze(program)
-
-        chunk = BytecodeChunk(filename)
-        self._compile_node(program, chunk)
-        chunk.emit(OpCode.HALT)
-        return chunk
+        return program
 
     def _compile_node(self, node, chunk):
         method = f"_compile_{type(node).__name__}"

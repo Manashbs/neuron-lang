@@ -1,7 +1,7 @@
 Metadata-Version: 2.4
 Name: neuron-lang
-Version: 1.0.0
-Summary: AI-First Programming Language
+Version: 1.1.0
+Summary: AI-first programming language with static tensor analysis and an OpenQASM 3 compiler
 License: MIT
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown

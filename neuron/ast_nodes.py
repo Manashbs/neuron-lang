@@ -68,6 +68,41 @@ class TypedAssignment(ASTNode):
         self.value = value
 
 
+class QuantumQubitDeclaration(ASTNode):
+    """Declare one owned qubit inside a quantum circuit."""
+
+    def __init__(self, name, line=None, column=None):
+        super().__init__(line, column)
+        self.name = name
+
+
+class QuantumTensorDeclaration(ASTNode):
+    """Declare a statically sized register of owned qubits."""
+
+    def __init__(self, name, size, line=None, column=None):
+        super().__init__(line, column)
+        self.name = name
+        self.size = size
+
+
+class GateOperation(ASTNode):
+    """A quantum gate or measurement operation."""
+
+    def __init__(self, name, arguments, line=None, column=None):
+        super().__init__(line, column)
+        self.name = name
+        self.arguments = arguments
+
+
+class QuantumCircuitDef(ASTNode):
+    """Quantum circuit block lowered by a quantum compiler backend."""
+
+    def __init__(self, name, body, line=None, column=None):
+        super().__init__(line, column)
+        self.name = name
+        self.body = body
+
+
 class AugmentedAssignment(ASTNode):
     """Augmented assignment: x += expr, x -= expr, etc."""
 

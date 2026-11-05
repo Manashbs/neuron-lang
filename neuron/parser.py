@@ -79,6 +79,23 @@ class Parser:
             return self.parse_entity_def()
         elif t == TokenType.BRAIN:
             return self.parse_brain_def()
+        elif t == TokenType.QUANTUM:
+            return self.parse_quantum_circuit()
+        elif t == TokenType.QUBIT:
+            token = self.advance()
+            name = self.expect(TokenType.IDENTIFIER, "Expected qubit name").value
+            self.match(TokenType.NEWLINE)
+            return ast.QuantumQubitDeclaration(name, line=token.line, column=token.column)
+        elif t == TokenType.QTENSOR:
+            token = self.advance()
+            self.expect(TokenType.LBRACKET, "Expected '[' after qtensor")
+            size = self.expect(TokenType.INTEGER, "qtensor size must be an integer literal").value
+            self.expect(TokenType.RBRACKET, "Expected ']' after qtensor size")
+            name = self.expect(TokenType.IDENTIFIER, "Expected qtensor register name").value
+            self.match(TokenType.NEWLINE)
+            return ast.QuantumTensorDeclaration(
+                name, size, line=token.line, column=token.column
+            )
         elif t == TokenType.WHEN:
             return self.parse_if_statement()
         elif t == TokenType.REPEAT:
@@ -135,6 +152,29 @@ class Parser:
             target.value, tensor_type, value,
             line=tensor_token.line, column=tensor_token.column
         )
+
+    def parse_quantum_circuit(self):
+        token = self.expect(TokenType.QUANTUM)
+        name = self.expect(TokenType.IDENTIFIER, "Expected circuit name").value
+        self.expect(TokenType.COLON, "Expected ':' after quantum circuit name")
+        body = self.parse_block()
+        operations = []
+        for statement in body:
+            if isinstance(statement, ast.ExpressionStatement):
+                expression = statement.expression
+                if (not isinstance(expression, ast.FunctionCall)
+                        or not isinstance(expression.callee, ast.Identifier)):
+                    self.error("Quantum circuit statements must be gate calls")
+                statement = ast.GateOperation(
+                    expression.callee.name, expression.args,
+                    line=expression.line, column=expression.column
+                )
+            elif not isinstance(statement, (
+                    ast.QuantumQubitDeclaration, ast.QuantumTensorDeclaration, ast.DropStatement,
+                    ast.Assignment, ast.MultiAssignment)):
+                self.error("Only qubit/register declarations, gate calls, and drop are allowed in a quantum circuit")
+            operations.append(statement)
+        return ast.QuantumCircuitDef(name, operations, line=token.line, column=token.column)
 
     def parse_function_def(self):
         token = self.expect(TokenType.DO)

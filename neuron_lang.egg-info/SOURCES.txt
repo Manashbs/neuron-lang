@@ -1,4 +1,7 @@
+MANIFEST.in
+README.md
 pyproject.toml
+examples/bell_state.nl
 neuron/__init__.py
 neuron/ast_nodes.py
 neuron/compiler.py
@@ -9,7 +12,9 @@ neuron/lexer.py
 neuron/main.py
 neuron/package_manager.py
 neuron/parser.py
+neuron/quantum.py
 neuron/repl.py
+neuron/semantic.py
 neuron/tokens.py
 neuron/stdlib/__init__.py
 neuron/stdlib/data.py
@@ -31,3 +36,5 @@ neuron_lang.egg-info/dependency_links.txt
 neuron_lang.egg-info/entry_points.txt
 neuron_lang.egg-info/requires.txt
 neuron_lang.egg-info/top_level.txt
+tests/test_quantum.py
+tests/test_semantic.py

@@ -113,7 +113,10 @@ class REPL:
     {NeuronColors.KEYWORD}repeat{Colors.RESET} cond:          While loop
     {NeuronColors.KEYWORD}entity{Colors.RESET} Name:          Define a class
     {NeuronColors.KEYWORD}brain{Colors.RESET} Name:           Define an AI model
+    {NeuronColors.KEYWORD}quantum{Colors.RESET} Name:        Define a compile-only quantum circuit
     {NeuronColors.KEYWORD}grab{Colors.RESET} module            Import a library
+
+  Compile quantum blocks with: neuron compile file.nl --target qasm3
 
   {Colors.BOLD}Available Libraries:{Colors.RESET}
     tensor, neural, optim, data, math,
