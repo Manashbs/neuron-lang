@@ -6,7 +6,7 @@ Interactive Read-Eval-Print Loop with syntax highlighting.
 
 import sys
 from neuron.interpreter import Interpreter
-from neuron.utils.colors import Colors, NeuronColors, colorize
+from neuron.utils.colors import Colors, NeuronColors, colorize, safe_print, safe_text
 from neuron.errors import NeuronError
 from neuron import __version__
 
@@ -29,7 +29,7 @@ class REPL:
         self.multiline_buffer = ""
 
     def run(self):
-        print(BANNER)
+        safe_print(BANNER)
 
         while True:
             try:
@@ -38,23 +38,23 @@ class REPL:
                 else:
                     prompt = f"{NeuronColors.PROMPT}  >> {Colors.RESET}"
 
-                line = input(prompt)
+                line = input(safe_text(prompt, getattr(sys.stdout, "encoding", None) or "utf-8"))
 
                 # Commands
                 if not self.multiline_buffer:
                     if line.strip() == ".exit":
-                        print(f"\n{Colors.DIM}  Goodbye!{Colors.RESET}\n")
+                        safe_print(f"\n{Colors.DIM}  Goodbye!{Colors.RESET}\n")
                         break
                     if line.strip() == ".help":
                         self._show_help()
                         continue
                     if line.strip() == ".clear":
-                        print("\033[2J\033[H")
-                        print(BANNER)
+                        safe_print("\033[2J\033[H")
+                        safe_print(BANNER)
                         continue
                     if line.strip() == ".reset":
                         self.interpreter = Interpreter()
-                        print(f"  {NeuronColors.SUCCESS}Environment reset.{Colors.RESET}")
+                        safe_print(f"  {NeuronColors.SUCCESS}Environment reset.{Colors.RESET}")
                         continue
 
                 # Multi-line detection
@@ -79,25 +79,25 @@ class REPL:
                 self._execute(line)
 
             except EOFError:
-                print(f"\n{Colors.DIM}  Goodbye! 🧠{Colors.RESET}\n")
+                safe_print(f"\n{Colors.DIM}  Goodbye! 🧠{Colors.RESET}\n")
                 break
             except KeyboardInterrupt:
                 self.multiline_buffer = ""
-                print(f"\n  {Colors.DIM}(interrupted){Colors.RESET}")
+                safe_print(f"\n  {Colors.DIM}(interrupted){Colors.RESET}")
 
     def _execute(self, source):
         try:
             result = self.interpreter.execute(source)
             if result is not None:
                 display = self.interpreter._to_string(result)
-                print(f"  {NeuronColors.SUCCESS}→ {display}{Colors.RESET}")
+                safe_print(f"  {NeuronColors.SUCCESS}→ {display}{Colors.RESET}")
         except NeuronError as e:
-            print(str(e))
+            safe_print(str(e))
         except Exception as e:
-            print(f"  {NeuronColors.ERROR}Internal Error: {e}{Colors.RESET}")
+            safe_print(f"  {NeuronColors.ERROR}Internal Error: {e}{Colors.RESET}")
 
     def _show_help(self):
-        print(f"""
+        safe_print(f"""
   {Colors.BOLD}Neuron REPL Commands:{Colors.RESET}
     {NeuronColors.KEYWORD}.help{Colors.RESET}    Show this help
     {NeuronColors.KEYWORD}.exit{Colors.RESET}    Exit the REPL

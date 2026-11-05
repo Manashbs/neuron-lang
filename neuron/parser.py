@@ -105,8 +105,36 @@ class Parser:
             return self.parse_emit()
         elif t == TokenType.SHARED:
             return self.parse_shared()
+        elif (t == TokenType.IDENTIFIER and self.current().value == "tensor"
+              and self.peek(1).type == TokenType.LBRACKET):
+            return self.parse_tensor_declaration()
         else:
             return self.parse_expression_statement()
+
+    def parse_tensor_declaration(self):
+        tensor_token = self.expect(TokenType.IDENTIFIER)
+        self.expect(TokenType.LBRACKET)
+        dimensions = [self.expect(
+            TokenType.INTEGER, "Tensor dimensions must be integer literals"
+        ).value]
+        while self.match(TokenType.COMMA):
+            dimensions.append(self.expect(
+                TokenType.INTEGER, "Tensor dimensions must be integer literals"
+            ).value)
+        self.expect(TokenType.RBRACKET, "Expected ']' after tensor dimensions")
+        target = self.expect(
+            TokenType.IDENTIFIER, "Expected a variable name after tensor type"
+        )
+        self.expect(TokenType.ASSIGN, "Expected '=' in tensor declaration")
+        value = self.parse_expression()
+        self.match(TokenType.NEWLINE)
+        tensor_type = ast.TensorType(
+            dimensions, line=tensor_token.line, column=tensor_token.column
+        )
+        return ast.TypedAssignment(
+            target.value, tensor_type, value,
+            line=tensor_token.line, column=tensor_token.column
+        )
 
     def parse_function_def(self):
         token = self.expect(TokenType.DO)

@@ -12,6 +12,7 @@ from enum import IntEnum, auto
 from neuron import ast_nodes as ast
 from neuron.lexer import Lexer
 from neuron.parser import Parser
+from neuron.semantic import StaticAnalyzer
 
 
 class OpCode(IntEnum):
@@ -113,6 +114,7 @@ class Compiler:
         tokens = lexer.tokenize()
         parser = Parser(tokens, source, filename)
         program = parser.parse()
+        StaticAnalyzer(source, filename).analyze(program)
 
         chunk = BytecodeChunk(filename)
         self._compile_node(program, chunk)
@@ -152,6 +154,11 @@ class Compiler:
         chunk.emit(OpCode.LOAD_VAR, idx, node.line)
 
     def _compile_Assignment(self, node, chunk):
+        self._compile_node(node.value, chunk)
+        idx = chunk.add_name(node.target)
+        chunk.emit(OpCode.STORE_VAR, idx, node.line)
+
+    def _compile_TypedAssignment(self, node, chunk):
         self._compile_node(node.value, chunk)
         idx = chunk.add_name(node.target)
         chunk.emit(OpCode.STORE_VAR, idx, node.line)

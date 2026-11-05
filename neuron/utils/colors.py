@@ -115,3 +115,24 @@ def bold_text(text):
 
 def header_text(text):
     return colorize(text, NeuronColors.HEADER)
+
+
+def safe_text(value, encoding=None):
+    """Convert text to the target stream encoding without crashing on Unicode errors."""
+    text = "" if value is None else str(value)
+    encoding = encoding or getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        text.encode(encoding)
+        return text
+    except UnicodeEncodeError:
+        return text.encode(encoding, errors="replace").decode(encoding)
+
+
+def safe_print(*values, sep=" ", end="\n", file=None, flush=False):
+    """Print text safely even when the active console encoding cannot handle emoji."""
+    target = file or sys.stdout
+    encoding = getattr(target, "encoding", None) or "utf-8"
+    text = sep.join(safe_text(v, encoding) for v in values) + end
+    target.write(text)
+    if flush:
+        target.flush()

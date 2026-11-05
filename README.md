@@ -170,6 +170,20 @@ model.train(data)
 
 Neuron ships with a built-in standard library for tensors (`tensor`) with automatic differentiation (Autograd) for building neural networks from scratch.
 
+### Compile-Time Shape Checks
+
+The compiler and interpreter check statically known tensor shapes before running a program. Use a typed tensor declaration to declare an expected shape:
+
+```neuron
+grab tensor
+
+tensor[100, 784] x = tensor.random(100, 784)
+tensor[784, 10] w = tensor.random(784, 10)
+tensor[100, 10] y = x.matmul(w)
+```
+
+The current analysis infers shapes from `tensor.random`, `tensor.rand`, `tensor.zeros`, and `tensor.ones`, propagates them through assignments, and checks rank-2 `matmul` and elementwise broadcasting. It reports a compile error when a known result conflicts with a declaration or matrix dimensions do not align. Shapes that cannot be inferred statically are left for runtime validation.
+
 ### Linear Regression Example
 ```neuron
 grab tensor
@@ -215,6 +229,12 @@ Neuron comes batteries-included with AI primitives:
 * `vision` / `nlp` - Image processing and text tokenization
 * `metrics` - Accuracy, MSE, MAE
 * `plot` - Easy data visualization
+
+## Compiler and Runtime Status
+
+Neuron currently uses a Python interpreter and a Python bytecode compiler. `.nlc` files are Python-pickled bytecode chunks; they are not yet a standalone executable format or a native VM. The shape-analysis pass is an initial compiler foundation, not a native tensor type system.
+
+Native CPU/CUDA memory management and GIL-free execution, a linear quantum type checker, hybrid parameter-shift training, OpenQASM 3 code generation, and IBM Quantum Runtime submission are not implemented yet. They require separate compiler/runtime modules and explicit circuit syntax and ownership rules; no claim of hardware support is made by this release.
 
 ---
 *Created by the Neuron Developer Community*

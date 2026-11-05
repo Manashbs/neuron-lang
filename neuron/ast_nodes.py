@@ -50,6 +50,24 @@ class Assignment(ASTNode):
         self.value = value
 
 
+class TensorType(ASTNode):
+    """A statically declared tensor shape, such as tensor[32, 8]."""
+
+    def __init__(self, dimensions, line=None, column=None):
+        super().__init__(line, column)
+        self.dimensions = dimensions
+
+
+class TypedAssignment(ASTNode):
+    """A variable assignment with a declared type."""
+
+    def __init__(self, target, type_node, value, line=None, column=None):
+        super().__init__(line, column)
+        self.target = target
+        self.type_node = type_node
+        self.value = value
+
+
 class AugmentedAssignment(ASTNode):
     """Augmented assignment: x += expr, x -= expr, etc."""
 

@@ -14,10 +14,10 @@ class NeuronTensor:
     def __init__(self, data, requires_grad=False):
         if isinstance(data, NeuronTensor):
             self.data = data.data.copy()
-        elif isinstance(data, np.ndarray):
-            self.data = data.astype(np.float64)
         else:
-            self.data = np.array(data, dtype=np.float64)
+            self.data = np.asarray(data, dtype=np.float64)
+            if not self.data.flags.c_contiguous:
+                self.data = np.ascontiguousarray(self.data)
         self.requires_grad = requires_grad
         self.grad = None
         self._grad_fn = None
@@ -30,6 +30,11 @@ class NeuronTensor:
     @property
     def size(self):
         return int(self.data.size)
+
+    @property
+    def data_ptr(self):
+        """Address of the first element in the contiguous CPU tensor buffer."""
+        return int(self.data.__array_interface__["data"][0])
 
     @property
     def value(self):

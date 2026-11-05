@@ -94,6 +94,13 @@ class NeuronTypeError(NeuronError):
         return "TypeError"
 
 
+class NeuronCompileError(NeuronError):
+    """Raised when static analysis rejects a program before execution."""
+
+    def error_type(self):
+        return "CompileError"
+
+
 class NeuronNameError(NeuronError):
     """Raised when a variable name is not found."""
 

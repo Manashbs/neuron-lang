@@ -12,6 +12,8 @@ from neuron.environment import (
 from neuron.errors import *
 from neuron.lexer import Lexer
 from neuron.parser import Parser
+from neuron.semantic import StaticAnalyzer
+from neuron.utils.colors import safe_print, safe_text
 import sys
 
 
@@ -54,12 +56,12 @@ class Interpreter:
 
     # ===== Built-in implementations =====
     def _builtin_show(self, args, **kwargs):
-        print(*args, end=kwargs.get("end", "\n"))
+        safe_print(*args, end=kwargs.get("end", "\n"))
         return None
 
     def _builtin_ask(self, args, **kwargs):
         prompt = args[0] if args else ""
-        return input(prompt)
+        return input(safe_text(prompt, getattr(sys.stdout, "encoding", None) or "utf-8"))
 
     def _builtin_len(self, args, **kwargs):
         return len(args[0])
@@ -138,6 +140,7 @@ class Interpreter:
         tokens = lexer.tokenize()
         parser = Parser(tokens, source, filename)
         program = parser.parse()
+        StaticAnalyzer(source, filename).analyze(program)
         return self.visit(program, self.global_env)
 
     def execute_file(self, filepath):
@@ -205,6 +208,11 @@ class Interpreter:
         return env.get("me", line=node.line, column=node.column)
 
     def visit_Assignment(self, node, env):
+        value = self.visit(node.value, env)
+        env.set(node.target, value)
+        return value
+
+    def visit_TypedAssignment(self, node, env):
         value = self.visit(node.value, env)
         env.set(node.target, value)
         return value
